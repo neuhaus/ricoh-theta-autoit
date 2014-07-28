@@ -15,5 +15,5 @@ turn the image into a photosphere.
 Refer to the Wiki at https://github.com/neuhaus/ricoh-theta-autoit/wiki for
 download links.
 
-Make great pictures and have fun!
--Sven Neuhaus
+Make great pictures and have fun!<br>
+*-Sven Neuhaus*
