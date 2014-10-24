@@ -10,7 +10,7 @@ accompanying _xmp.jpg file - generate it using the *Ricoh Theta for Windows*
 application.
 
 The generated files will be **auto-levelled** and contain the **XMP metadata** necessary to
-turn the image into a photosphere and to use it with [Mapillary](http://blog.mapillary.com/update/2014/09/10/support-for-pano.html).
+turn the images into photospheres and/or use them with [Mapillary](http://blog.mapillary.com/update/2014/09/10/support-for-pano.html).
 
 Refer to the [Wiki](https://github.com/neuhaus/ricoh-theta-autoit/wiki) for
 download links.
