@@ -15,7 +15,7 @@
 
 ; Config Section ---------------------------------------------------------------
 ;Local $theta_exe = @ProgramFilesDir & "\RICOH THETA for Windows(R) Mac\RICOH THETA for Windows(R) Mac.exe"
-Local $theta_exe = "F:\Program Files (x86)\RICOH THETA for Windows(R) Mac\RICOH THETA for Windows(R) Mac.exe"
+Local $theta_exe = "D:\Program Files (x86)\Ricoh Theta\RICOH THETA for Windows(R) Mac\RICOH THETA for Windows(R) Mac.exe"
 ; Change these if you use a Locale other than German
 Local $theta_title = "RICOH THETA for Windows(R)/Mac"
 Local $theta_save_title = "JPEG-Daten mit XMP"
@@ -34,6 +34,8 @@ Local $search_handle = FileFindFirstFile("*.JPG")
 If $search_handle = -1 Then
     MsgBox($MB_SYSTEMMODAL, "", "Error: No .JPG files in current directory.")
 EndIf
+
+AutoItSetOption ("PixelCoordMode", 0); // relative to Window
 
 Local $done = 0
 Do
@@ -122,24 +124,25 @@ EndFunc
 
 ; This function waits until the program has finished saving the image
 Func wait_until_ready($image_file)
+    $pixelx = 473; // was 914
+	$pixely = 735; // was 930
 	Local $handle = WinGetHandle($image_file & " - " & $theta_title)
 	; the "+" button will be grayed out, then it will turn white again
-	$color = PixelGetColor ( 914, 930, $handle )
+	$color = PixelGetColor ( $pixelx, $pixely, $handle )
 	While $color = 0xFFFFFF
 		Sleep(50)
-		$color = PixelGetColor( 914, 930, $handle )
+		$color = PixelGetColor( $pixelx, $pixely, $handle )
 		; TODO: if computer is too fast it may have been grey before we saw it... XXX
 	WEnd
 
-	;ConsoleWrite ( " pixel is no longer white" & @CRLF)
-
-	$color = PixelGetColor ( 914, 930, $handle )
+	ConsoleWrite ( " pixel is no longer white" & @CRLF)
+	$color = PixelGetColor ( $pixelx, $pixely, $handle )
 	While $color <> 0xFFFFFF
 		Sleep(100)
-		$color = PixelGetColor( 914, 930, $handle )
+		$color = PixelGetColor( $pixelx, $pixely, $handle )
 	WEnd
 
-	;ConsoleWrite ( " pixel is white again, writing has finished." & @CRLF)
+	ConsoleWrite ( " pixel is white again, writing has finished." & @CRLF)
 EndFunc
 
 ;eof. This file has not been truncate
