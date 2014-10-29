@@ -26,7 +26,7 @@ Local $shortcut_write_xmp = "j"
 ; No user serviceable parts below ----------------------------------------------
 
 #include <File.au3>
-Local $donefiles[9999]
+Local $donefiles[9999] // it's over 9000!
 $donefiles = preprocessed_images()
 
 ; Now we go through all images (*.JPG) in the directory
@@ -75,7 +75,7 @@ MsgBox($MB_APPLMODAL, "", "The autoit script is finished.")
 ; get a list of all already processed images (*_xmp.JPG)
 Func preprocessed_images ()
 	Local $image_file
-	Local $donefiles[9999]
+	Local $donefiles[9999] // "WHAT?! NINE THOUSAND?!"
 	Local $di = 0
 	Local $search_handle = FileFindFirstFile("*_xmp.JPG")
 	If $search_handle <> -1 Then
