@@ -1,6 +1,6 @@
 #cs ----------------------------------------------------------------------------
 
- AutoIt Version: 3.3.12.0
+ AutoIt Version: 3.4.1
  Author:         Sven Neuhaus <sven-theta AT sven DOT de>
 
  Script Function:
@@ -14,10 +14,10 @@
 #ce ----------------------------------------------------------------------------
 
 ; Config Section ---------------------------------------------------------------
-;Local $theta_exe = @ProgramFilesDir & "\RICOH THETA for Windows(R) Mac\RICOH THETA for Windows(R) Mac.exe"
-Local $theta_exe = "D:\Program Files (x86)\Ricoh Theta\RICOH THETA for Windows(R) Mac\RICOH THETA for Windows(R) Mac.exe"
+;Local $theta_exe = @ProgramFilesDir & "\RICOH THETA\RICOH THETA.exe"
+Local $theta_exe = "F:\Program Files (x86)\RICOH THETA\RICOH THETA.exe"
 ; Change these if you use a Locale other than German
-Local $theta_title = "RICOH THETA for Windows(R)/Mac"
+Local $theta_title = "RICOH THETA"
 Local $theta_save_title = "JPEG-Daten mit XMP"
 
 Local $shortcut_file_menu = "!D"
@@ -26,7 +26,7 @@ Local $shortcut_write_xmp = "j"
 ; No user serviceable parts below ----------------------------------------------
 
 #include <File.au3>
-Local $donefiles[9999] // it's over 9000!
+Local $donefiles[9999] ; it's over 9000!
 $donefiles = preprocessed_images()
 
 ; Now we go through all images (*.JPG) in the directory
@@ -35,7 +35,7 @@ If $search_handle = -1 Then
     MsgBox($MB_SYSTEMMODAL, "", "Error: No .JPG files in current directory.")
 EndIf
 
-AutoItSetOption ("PixelCoordMode", 0); // relative to Window
+AutoItSetOption ("PixelCoordMode", 0)  ;relative to Window
 
 Local $done = 0
 Do
@@ -75,7 +75,7 @@ MsgBox($MB_APPLMODAL, "", "The autoit script is finished.")
 ; get a list of all already processed images (*_xmp.JPG)
 Func preprocessed_images ()
 	Local $image_file
-	Local $donefiles[9999] // "WHAT?! NINE THOUSAND?!"
+	Local $donefiles[9999] ;"WHAT?! NINE THOUSAND?!"
 	Local $di = 0
 	Local $search_handle = FileFindFirstFile("*_xmp.JPG")
 	If $search_handle <> -1 Then
@@ -85,7 +85,7 @@ Func preprocessed_images ()
 				ExitLoop
 			EndIf
 			; remember the filename but without the "_xmp.JPG" suffix
-			$donefiles[$di] = StringLeft( $image_file, StringInStr( $image_file, "_xmp.JPG")-1 )
+			$donefiles[$di] = StringLeft($image_file, StringInStr( $image_file, "_xmp.JPG")-1)
 			$di = $di + 1
 		Until @error
 		FileClose($search_handle)
@@ -105,6 +105,7 @@ Func xmp_image($image_file)
 
 	; Save the file with XMP data and rotation correction
 
+;	WinMenuSelectItem($image_file & " - " & $theta_title, "", "&Datei", "&Mit oben/unten schreiben", "&JPEG-Daten mit XMP")
 	; File Menu ("Datei")
 	Send($shortcut_file_menu)
 	; Submenu "Mit oben/unten schreiben"
@@ -124,25 +125,36 @@ EndFunc
 
 ; This function waits until the program has finished saving the image
 Func wait_until_ready($image_file)
+	$xmp_file = StringLeft($image_file, StringInStr( $image_file, ".JPG")-1) & "_xmp.JPG"
+
+	While (Not FileExists($xmp_file))
+		Sleep(50)
+	WEnd
+
+#comments-start
+	Local $handle = WinGetHandle($image_file & " - " & $theta_title)
+	; check if menu is enabled (doesn't work)
+	;ControlCommand($hWin, "", "[NAME:button2]", "IsEnabled", "")
     $pixelx = 473; // was 914
 	$pixely = 735; // was 930
-	Local $handle = WinGetHandle($image_file & " - " & $theta_title)
 	; the "+" button will be grayed out, then it will turn white again
-	$color = PixelGetColor ( $pixelx, $pixely, $handle )
+	$color = PixelGetColor($pixelx, $pixely, $handle )
 	While $color = 0xFFFFFF
 		Sleep(50)
-		$color = PixelGetColor( $pixelx, $pixely, $handle )
+		$color = PixelGetColor($pixelx, $pixely, $handle )
 		; TODO: if computer is too fast it may have been grey before we saw it... XXX
 	WEnd
 
-	ConsoleWrite ( " pixel is no longer white" & @CRLF)
-	$color = PixelGetColor ( $pixelx, $pixely, $handle )
+	ConsoleWrite(" pixel is no longer white" & @CRLF)
+	$color = PixelGetColor($pixelx, $pixely, $handle)
 	While $color <> 0xFFFFFF
 		Sleep(100)
-		$color = PixelGetColor( $pixelx, $pixely, $handle )
+		$color = PixelGetColor($pixelx, $pixely, $handle)
 	WEnd
 
-	ConsoleWrite ( " pixel is white again, writing has finished." & @CRLF)
+	ConsoleWrite(" pixel is white again, writing has finished." & @CRLF)
+#comments-end
+
 EndFunc
 
 ;eof. This file has not been truncate
