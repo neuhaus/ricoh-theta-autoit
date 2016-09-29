@@ -3,10 +3,10 @@ ricoh-theta-autoit
 
 [AutoIt 3.x](https://www.autoitscript.com/site/autoit/) script for batch processing using the [Ricoh Theta for Windows](https://theta360.com/de/support/download/) GUI application. The app can auto-level the panoramic images and add the missing XMP metadata, but it only processes one image at a time by itself.
 
-Maintainer wanted
------------------
+New maintainer
+--------------
 
-While the script should still work even with the latest version of the program, I no longer own a Ricoh Theta camera. If you would like to take over maintaining the script, please contact me.
+The script was originally written by Sven Neuhaus. Ian Felstead is the current maintainer.
 
 After downloading, change the path and the language strings in the script `theta_xmp.au3`, then 
 copy it into the directory with your 360° panoramic images 
@@ -22,4 +22,4 @@ Refer to the [Wiki](https://github.com/neuhaus/ricoh-theta-autoit/wiki) for
 download links.
 
 Take great pictures and have fun!<br>
-*-Sven Neuhaus*
+
