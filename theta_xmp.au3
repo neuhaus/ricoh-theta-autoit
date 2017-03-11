@@ -16,13 +16,23 @@
 ; Config Section ---------------------------------------------------------------
 ;Local $theta_exe = @ProgramFilesDir & "\RICOH THETA\RICOH THETA.exe"
 Local $theta_exe = "F:\Program Files (x86)\RICOH THETA\RICOH THETA.exe"
-; Change these if you use a Locale other than German
+; Change these if you use a Locale other than German ---------------------------
 Local $theta_title = "RICOH THETA"
 Local $theta_save_title = "JPEG-Daten mit XMP"
 
 Local $shortcut_file_menu = "!D"
 Local $shortcut_write_with_up_down = "m"
 Local $shortcut_write_xmp = "j"
+
+; For English US locale, use the following instead: ----------------------------
+; Local $theta_title = "RICOH THETA"
+; Local $theta_save_title = "JPEG data with XMP"
+
+; Local $shortcut_file_menu = "!F"
+; Local $shortcut_write_with_up_down = "w"
+; Local $shortcut_write_xmp = "j"
+; ------------------------------------------------------------------------------
+
 ; No user serviceable parts below ----------------------------------------------
 
 #include <File.au3>
