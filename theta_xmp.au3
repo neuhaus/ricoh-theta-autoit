@@ -11,31 +11,75 @@
     Will not work properly if there are more than 9999 files that have
 	already	been processed in the current directory.
 
+ Configuration:
+ 	Before running this script, please configure the three sections in 
+	the 'Config Section' below.
+
 #ce ----------------------------------------------------------------------------
 
 ; Config Section ---------------------------------------------------------------
-;Local $theta_exe = @ProgramFilesDir & "\RICOH THETA\RICOH THETA.exe"
-Local $theta_exe = "F:\Program Files (x86)\RICOH THETA\RICOH THETA.exe"
-; Change these if you use a Locale other than German ---------------------------
+
+; Configure App Path:
+;   Alter the value of $theta_exe to match the path on your system.
+;   If you don't know the path then right click on the icon, and
+;   look at the Target value under the Shortcut tab.
+;
+;Local $theta_exe = "C:\Users\you\AppData\Local\Programs\RicohTheta\RICOH THETA.exe"
+Local $theta_exe = "C:\Program Files (x86)\RICOH THETA\RICOH THETA.exe"
+
+
+; Configure Language:
+;   Change the title values if you use a Locale other than German
+;
 Local $theta_title = "RICOH THETA"
 Local $theta_save_title = "JPEG-Daten mit XMP"
+; For English US locale, use the following instead:
+;Local $theta_title = "RICOH THETA"
+;Local $theta_save_title = "JPEG data with XMP"
 
+; Configure Navigation Method:
+;   Select and configure the navigation method to match your version of
+;   the Ricoh Theta App.
+; 
+;   Unfortunately only older versions of the app provide menu shortcuts 
+;   for the conversion operations, hence '$navigationMethod' defaulting 
+;   to 2 (cursor based).
+;   Leave this as is unless you are using an old version with shortcut access.
+;
+Local $navigationMethod = 2
+
+; method 1: (old) shortcut navigation method configuration
+;   if using this navigation method, please configure the menu shortcuts to
+;   match your locale (german default).
+;   if not using this method then you can leave as is.
+; German shortcuts;
 Local $shortcut_file_menu = "!D"
 Local $shortcut_write_with_up_down = "m"
 Local $shortcut_write_xmp = "j"
-
-; For English US locale, use the following instead: ----------------------------
-; Local $theta_title = "RICOH THETA"
-; Local $theta_save_title = "JPEG data with XMP"
-
+; For English US locale, use the following instead:
 ; Local $shortcut_file_menu = "!F"
 ; Local $shortcut_write_with_up_down = "w"
 ; Local $shortcut_write_xmp = "j"
+
+; method 2: (new) cursor based navigation method configuration
+;   if using this method then then you may need to tweak the following
+;   options depending on your system. The basic idea is that the script
+;   simulates a mouse click to get to the file menu, then used the
+;   cursor keys to get to the desired menu. Not ideal, but...
+;   
+Local $fileMenuClickOffsetX=20
+Local $fileMenuClickOffsetY=40
+Local $downPressesToWriteMenu=4
+Local $rightPressesToJpgXmpMenu=2
+
 ; ------------------------------------------------------------------------------
+
 
 ; No user serviceable parts below ----------------------------------------------
 
 #include <File.au3>
+
+Local $doneFileExtensions[2] = ["_xmp.JPG", "_xmp_e.jpg"]
 Local $donefiles[9999] ; it's over 9000!
 $donefiles = preprocessed_images()
 
@@ -51,11 +95,20 @@ Local $done = 0
 Do
 	Do
 		$image_file = FileFindNextFile($search_handle)
+		
 		If @error Then
 			$done = 1
 			ExitLoop
 		EndIf
-	Until Not(StringInStr($image_file, "_xmp.JPG"))
+
+		Local $isDoneFile = False
+		For $i = 0 to UBound($doneFileExtensions)-1
+			If StringInStr($image_file, $doneFileExtensions[$i]) <> 0 Then
+			    $isDoneFile = True
+			Endif
+		Next
+	Until $isDoneFile = False
+
 
 	If ($done = 1) Then
 		ExitLoop
@@ -82,24 +135,28 @@ FileClose($search_handle)
 MsgBox($MB_APPLMODAL, "", "The autoit script is finished.")
 
 
-; get a list of all already processed images (*_xmp.JPG)
+; get a list of all already processed images (e.g. *_xmp.JPG)
 Func preprocessed_images ()
 	Local $image_file
 	Local $donefiles[9999] ;"WHAT?! NINE THOUSAND?!"
 	Local $di = 0
-	Local $search_handle = FileFindFirstFile("*_xmp.JPG")
-	If $search_handle <> -1 Then
-		Do
-			$image_file = FileFindNextFile($search_handle)
-			If @Error Then
-				ExitLoop
-			EndIf
-			; remember the filename but without the "_xmp.JPG" suffix
-			$donefiles[$di] = StringLeft($image_file, StringInStr( $image_file, "_xmp.JPG")-1)
-			$di = $di + 1
-		Until @error
-		FileClose($search_handle)
-	EndIf
+
+	For $i = 0 to UBound($doneFileExtensions)-1
+		Local $currentExt = $doneFileExtensions[$i]
+		Local $search_handle = FileFindFirstFile( "*" & $currentExt)
+		If $search_handle <> -1 Then
+			Do
+				$image_file = FileFindNextFile($search_handle)
+				If @Error Then
+					ExitLoop
+				EndIf
+				; remember the filename but without the done suffix
+				$donefiles[$di] = StringLeft($image_file, StringInStr( $image_file, $currentExt)-1)
+				$di = $di + 1
+			Until @error
+			FileClose($search_handle)
+		EndIf
+	Next
 	Return $donefiles
 EndFunc
 
@@ -115,13 +172,35 @@ Func xmp_image($image_file)
 
 	; Save the file with XMP data and rotation correction
 
-;	WinMenuSelectItem($image_file & " - " & $theta_title, "", "&Datei", "&Mit oben/unten schreiben", "&JPEG-Daten mit XMP")
-	; File Menu ("Datei")
-	Send($shortcut_file_menu)
-	; Submenu "Mit oben/unten schreiben"
-	Send($shortcut_write_with_up_down)
-	; Menuentry "JPEG-Daten mit XMP"
-	Send($shortcut_write_xmp)
+	if $navigationMethod = 1 then
+
+		; (old) shortcut method
+
+		;	WinMenuSelectItem($image_file & " - " & $theta_title, "", "&Datei", "&Mit oben/unten schreiben", "&JPEG-Daten mit XMP")
+		; File Menu ("Datei")
+		Send($shortcut_file_menu)
+		; Submenu "Mit oben/unten schreiben"
+		Send($shortcut_write_with_up_down)
+		; Menuentry "JPEG-Daten mit XMP"
+		Send($shortcut_write_xmp)
+	else
+		; (new) cursor method
+
+		; Open menu with mouse
+		Opt("MouseCoordMode", 0) ; coords relative to active window
+		MouseClick("left", $fileMenuClickOffsetX, $fileMenuClickOffsetY, 1, 1 )
+
+		For $i = 1 To $downPressesToWriteMenu
+			Send("{Down}")
+		Next
+
+		For $i = 1 To $rightPressesToJpgXmpMenu
+			Send("{Right}")
+		Next
+
+		Send("{Enter}")
+	endif
+
 	; wait for "save file" dialog to open
 	WinWaitActive($theta_save_title)
 	Send("{ENTER}")
@@ -132,13 +211,24 @@ Func xmp_image($image_file)
 	WinClose($image_file & " - " & $theta_title)
 EndFunc
 
-
+ 
 ; This function waits until the program has finished saving the image
+; I've noticed the app may save as _xmp_e.jpg too..
 Func wait_until_ready($image_file)
-	$xmp_file = StringLeft($image_file, StringInStr( $image_file, ".JPG")-1) & "_xmp.JPG"
+	Local $seenDoneFile = False
 
-	While (Not FileExists($xmp_file))
-		Sleep(50)
+	While $seenDoneFile = False
+	
+		For $i = 0 to UBound($doneFileExtensions)-1
+			Local $nameToCheck = StringLeft($image_file, StringInStr( $image_file, ".JPG")-1) & $doneFileExtensions[$i]
+			If FileExists($nameToCheck) = 1 Then
+				$seenDoneFile = True
+			Endif
+		Next
+
+		If $seenDoneFile = False Then
+			Sleep(50)
+		Endif
 	WEnd
 
 #comments-start
