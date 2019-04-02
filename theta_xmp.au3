@@ -79,6 +79,7 @@ Local $rightPressesToJpgXmpMenu=2
 
 #include <File.au3>
 
+Local $windowTimeout = 20
 Local $doneFileExtensions[2] = ["_xmp.JPG", "_xmp_e.jpg"]
 Local $donefiles[9999] ; it's over 9000!
 $donefiles = preprocessed_images()
@@ -164,10 +165,20 @@ EndFunc
 ; open file with theta app then save it with xmp data
 Func xmp_image($image_file)
 	; open program with image as parameter
-	Run($theta_exe & ' "' & @WorkingDir & '\' & $image_file & '"')
-	WinWaitActive($theta_title)
+	Local $pid = Run($theta_exe & ' "' & @WorkingDir & '\' & $image_file & '"')
+	if $pid = 0 then
+		report_failure( "Error: Unable to find " & $theta_exe )
+	endif
+	Local $winHdl = WinWaitActive($theta_title, "",$windowTimeout)
+	if $winHdl = 0 Then
+		report_failure( "Timed out while trying to find Theta App window" )
+	Endif
 	; after loading the image, the window title changes
-	WinWaitActive($image_file & " - " & $theta_title)
+	$winHdl = WinWaitActive($image_file & " - " & $theta_title, "", $windowTimeout)
+	if $winHdl = 0 Then
+		report_failure( "Timed out while trying to find Theta App file loaded window" )
+	Endif
+
 	; image loading done.
 
 	; Save the file with XMP data and rotation correction
@@ -189,20 +200,27 @@ Func xmp_image($image_file)
 		; Open menu with mouse
 		Opt("MouseCoordMode", 0) ; coords relative to active window
 		MouseClick("left", $fileMenuClickOffsetX, $fileMenuClickOffsetY, 1, 1 )
+		Sleep(250) 	; note: a low sleep here can trip up the menu navigation
 
 		For $i = 1 To $downPressesToWriteMenu
 			Send("{Down}")
+			Sleep(10)
 		Next
 
 		For $i = 1 To $rightPressesToJpgXmpMenu
 			Send("{Right}")
+			Sleep(10)
 		Next
 
 		Send("{Enter}")
+		Sleep(10)
 	endif
 
 	; wait for "save file" dialog to open
-	WinWaitActive($theta_save_title)
+	$winHdl = WinWaitActive($theta_save_title, "", $windowTimeout)
+	if $winHdl = 0 then
+		report_failure( "TImeout while waiting for the file save window" )
+	endif
 	Send("{ENTER}")
 
 	; Wait until the file has been written
@@ -211,6 +229,12 @@ Func xmp_image($image_file)
 	WinClose($image_file & " - " & $theta_title)
 EndFunc
 
+;
+;
+Func report_failure($msg)
+    MsgBox($MB_SYSTEMMODAL, "", $msg)
+	Exit(1)
+EndFunc
  
 ; This function waits until the program has finished saving the image
 ; I've noticed the app may save as _xmp_e.jpg too..
@@ -227,7 +251,7 @@ Func wait_until_ready($image_file)
 		Next
 
 		If $seenDoneFile = False Then
-			Sleep(50)
+			Sleep(100)
 		Endif
 	WEnd
 
